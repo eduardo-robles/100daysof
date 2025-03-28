@@ -1,0 +1,7 @@
+* 100 Days of Detection Rules
+** Description
+These are various detection rules I have written for various projects or fun.
+* Sigma
+* Yara
+* Snort
+* Suricata
