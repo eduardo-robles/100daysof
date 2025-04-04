@@ -4,4 +4,153 @@ A collection of various queries I have written for various projects and curiosit
 * VQL
 * LEQL
 * XQL
+** Windows - 4625 Failed Logon Events
+#+begin_src sql
+config case_sensitive = false
+| dataset = forensics_event_log
+| filter source = "Security" AND event_id = 4625
+| alter Subject_User_SID = if (search_uuid != null, arrayindex(regextract(message,"Security
+ID:\t+(.*)\r\n\t"),0), arrayindex(regextract(message,"SubjectUserSid=(.*)\n"),0)),
+ Subject_User_Name = if (search_uuid != null, arrayindex(regextract(message,"Account
+Name:\t+(.*)\r\n\t"),0), arrayindex(regextract(message,"SubjectUserName=(.*)\n"),0)),
+ Subject_Domain_Name = if (search_uuid != null, arrayindex(regextract(message,"Account
+Domain:\t+(.*)\r\n\t"),0), arrayindex(regextract(message,"SubjectDomainName=(.*)\n"),0)),
+ Subject_Logon_ID = if (search_uuid != null, arrayindex(regextract(message,"Logon
+ID:\t+(.*)\r\n"),0), arrayindex(regextract(message,"SubjectLogonId=(.*)\n"),0)),
+ Target_User_SID = if (search_uuid != null, arrayindex(regextract(message,"Security
+ID:\t+(.*)\r\n\t"),1), arrayindex(regextract(message,"SubjectUserSid=(.*)\n"),0)),
+ Target_User_Name = if (search_uuid != null, arrayindex(regextract(message,"Account
+Name:\t+(.*)\r\n\t"),1), arrayindex(regextract(message,"TargetUserName=(.*)\n"),0)),
+ Target_Domain_Name = if (search_uuid != null, arrayindex(regextract(message,"Account
+Domain:\t+(.*)\r\n\t"),2), arrayindex(regextract(message,"TargetDomainName=(.*)\n"),0)),
+ Logon_Type = if (search_uuid != null, arrayindex(regextract(message,"Logon
+Type:\t+(.*)\r\n"),0), arrayindex(regextract(message,"LogonType=(.*)\n"),0)),
+ Failure_Reason = if (search_uuid != null, arrayindex(regextract(message,"Failure
+Reason:\t+(.*)\r\n"),0), arrayindex(regextract(message,"FailureReason=(.*)\n"),0)),
+ Sub_Status = if (search_uuid != null, arrayindex(regextract(message,"Sub
+Status:\t+(.*)\r\n"),0), arrayindex(regextract(message,"SubStatus=(.*)\n"),0)), Status =
+arrayindex(regextract(message, "Status=(.*)\n"), 0),
+ Caller_Process_Id = if (search_uuid != null, arrayindex(regextract(message,"Caller Process
+ID:\t+(.*)\r\n\t"),0), arrayindex(regextract(message,"ProcessId=(.*)\n"),0)),
+ Caller_Process_Name = if (search_uuid != null, arrayindex(regextract(message,"Caller
+Process Name:\t+(.*)\r\n"),0), arrayindex(regextract(message,"ProcessName=(.*)\n"),0)),
+ Workstation_Name = if (search_uuid != null, arrayindex(regextract(message,"Workstation
+Name:\t+(.*)\r\n"),0), arrayindex(regextract(message,"WorkstationName=(.*)\n"),0)),
+ Source_Address = if (search_uuid != null, arrayindex(regextract(message,"Network
+Address:\t+(.*)\r\n\t"),0), arrayindex(regextract(message,"IpAddress=(.*)\n"),0)),
+ Source_Port = if (search_uuid != null, arrayindex(regextract(message,"Port:\t+(.*)\r\n"),0),
+arrayindex(regextract(message,"IpPort=(.*)"),0)),
+ Logon_Process = if (search_uuid != null, arrayindex(regextract(message,"Logon
+Process:\t+(.*)\r\n"),0), arrayindex(regextract(message,"LogonProcess=(.*)"),0)),
+ Authentication_Package = if (search_uuid != null,
+arrayindex(regextract(message,"Authentication Package:\t+(.*)\r\n"),0),
+arrayindex(regextract(message,"AuthenticationPackage=(.*)"),0))
+| alter Timestamp = to_timestamp(event_generated, "millis"),
+ Event_Description = "An account failed to log on"
+| alter Logon_Type_Description = if (Logon_Type = "0", "System",
+ if (Logon_Type = "2", "Interactive",
+ if (Logon_Type = "3", "Network",
+ if (Logon_Type = "4", "Batch",
+ if (Logon_Type = "5", "Service",
+ if (Logon_Type = "7", "Unlock",
+ if (Logon_Type = "8", "NetworkCleartext",
+ if (Logon_Type = "9", "NewCredentials",
+ if (Logon_Type = "10", "RemoteInteractive",
+ if (Logon_Type = "11", "CachedInteractive",
+ if (Logon_Type = "12", "NewCredentials",
+ if (Logon_Type = "13", "CachedUnlock", "Invalid"))))))))))))
+// map Sub_Status codes
+| alter Failure_Reason = if ( Sub_Status = "0XC000005E", "There are currently no logon servers
+available to service the logon request.",
+if ( Sub_Status = "0xC0000064", "User logon with misspelled or bad user account",
+if ( Sub_Status = "0xC000006A", "User logon with misspelled or bad password",
+if ( Sub_Status = "0XC000006D", "The cause is either a bad username or authentication
+information",
+if ( Sub_Status = "0XC000006E", "Indicates a referenced user name and authentication
+information are valid, but some user account restriction has prevented successful authentication
+(such as time-of-day restrictions).",
+if ( Sub_Status = "0xC000006F", "User logon outside authorized hours",
+if ( Sub_Status = "0xC0000070", "User logon from unauthorized workstation",
+if ( Sub_Status = "0xC0000071", "User logon with expired password",
+if ( Sub_Status = "0xC0000072", "User logon to account disabled by administrator",
+if ( Sub_Status = "0XC00000DC", "Indicates the Sam Server was in the wrong state to perform
+the desired operation.",
+if ( Sub_Status = "0XC0000133", "Clocks between DC and other computer too far out of sync",
+if ( Sub_Status = "0XC000015B", "The user has not been granted the requested logon type
+(also called the logon right) at this machine",
+if ( Sub_Status = "0XC000018C", "The logon request failed because the trust relationship
+between the primary domain and the trusted domain failed.",
+if ( Sub_Status = "0XC0000192", "An attempt was made to logon, but the Netlogon service was
+not started.",
+if ( Sub_Status = "0xC0000193", "User logon with expired account",
+if ( Sub_Status = "0XC0000224", "User is required to change password at next logon",
+if ( Sub_Status = "0XC0000225", "Evidently a bug in Windows and not a risk",
+if ( Sub_Status = "0xC0000234", "User logon with account locked",
+if ( Sub_Status = "0XC00002EE", "Failure Reason: An Error occurred during Logon",
+if ( Sub_Status = "0XC0000413", "Logon Failure: The machine you are logging on to is
+protected by an authentication firewall. The specified account is not allowed to authenticate to
+the machine.", concat("unknown Status:", Status, " SubStaus:", Sub_Status )))))))))))))))))))))
+// Create Source_Address_Private to determine is the source address is a private IP address| alter Source_Address_Private = if (incidr(Source_Address, "10.0.0.0/8") = true, "TRUE",
+ if (incidr(Source_Address, "127.0.0.0/8") = true, "TRUE",
+ if (incidr(Source_Address, "169.254.0.0/16") = true, "TRUE",
+ if (incidr(Source_Address, "172.16.0.0/12") = true, "TRUE",
+ if (incidr(Source_Address, "192.168.0.0/16") = true, "TRUE", "FALSE")))))
+// Filter by Private Addresses
+//| filter Source_Address_Private = "FALSE"
+//Join on endpoints dataset to see if source address is in XDR
+| join type = left (dataset = endpoints
+| arrayexpand ip_address
+| fields endpoint_name as XDR_Endpoint_Name, ip_address, endpoint_id
+) as endpoints endpoints.ip_address = source_address
+// End join on endpoints inventory
+// Create Source_XDR_Installed, set to "TRUE" if source in XDR, "FALSE" otherwise
+| alter Source_XDR_Installed = if (endpoint_id != null, "TRUE", "FALSE")
+// Uncomment below to filter for source_adress or host_Name
+//| filter Source_Address = "&lt;place source_address here&gt;"
+//| filter host_name = "&lt;place host_name here&gt;"
+// Recommended line to return most relevant fields
+| fields Timestamp, host_name,source, event_id, Event_Description, Logon_Type,
+Logon_Type_Description, Failure_Reason, Sub_Status, Target_User_SID, Target_User_Name,
+Target_Domain_Name, Workstation_Name, Source_Address, Source_Address_Private,
+Source_Port, Logon_Process, Caller_Process_Name, Source_XDR_Installed,
+XDR_Endpoint_Name, message
+// Sort by Timestamp, descending
+// Sort Struggles with a high number of events. If the query is failing, try disabling sort.
+//| sort desc Timestamp
+// Use this comp to count failed logons for a unique username by source address
+//| comp count_distinct(Target_User_Name) as Counter by Source_Address
+//Use this comp the review event count and the number of hosts by usernames
+//| comp count() as eventCount, count_distinct(host_name) as num_host, last(Timestamp) as
+last_fail, min(Timestamp) as first_fail, values(Failure_Reason) as Reason, values(Logon_Type)
+by Sub_Status, Target_User_Name
+#+end_src
+** Windows - Files with Passwords
+#+begin_src sql
+ config case_sensitive = false
+ | dataset = xdr_data // Using the xdr dataset
+ | filter action_file_name contains "password" and (action_file_name contains ".doc" or
+action_file_name contains ".xls" or action_file_name contains ".txt" or action_file_name
+contains ".csv") and action_file_name not contains "~$" and action_file_name not
+contains ".lnk" and action_file_name not contains ":Zone.Identifier" and
+actor_effective_username not contains "system" and actor_process_image_name not
+contains "chrome.exe" and actor_process_image_name not contains "cmd.exe" and
+actor_process_image_name not contains "java.exe" and actor_process_image_name
+not contains "searchprotocolhost.exe" and action_file_path not contains "appdata" and
+(action_file_path contains "desktop" or action_file_path contains "documents" or
+action_file_path contains "user")
+ |fields action_file_name as FileName, action_file_path as File_Path,
+actor_effective_username as User, agent_hostname as Hostname,
+actor_process_image_name as Acting_Process
+ | dedup FileName , Hostname
+ | sort asc User, asc Hostname
+#+end_src
+** Windows Chrome/Chromium Browser Extensions
+#+begin_src sql
+dataset = xdr_data
+| filter event_sub_type = FILE_CREATE_NEW and action_file_path contains "User
+Data\Default\Extensions"
+| alter ExtensionID = arrayindex(regextract(action_file_path,"\\Extensions\\(.*)\\[0-9]"),0)
+| alter FolderPath = arrayindex(regextract(action_file_path,"(.*)\\[0-9]"),0)
+| fields agent_hostname, _time, ExtensionID, FolderPath, agent_id
+#+end_src
 * OSquery
