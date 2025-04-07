@@ -1,1 +1,40 @@
 * 100 Days of....
+  :PROPERTIES:
+  :CUSTOM_ID: 100daysof
+  :END:
+** About
+   :PROPERTIES:
+   :CUSTOM_ID: about
+   :END:
+
+   This is a collection of queries and rules used in Security Operations. I have compiled this list for my own personal use. Most of these are simply to experiment with writing scripts and code for security operations.
+
+*** Prerequisites
+    :PROPERTIES:
+    :CUSTOM_ID: prerequisites
+    :END:
+- A text editor
+- Basic knowledge of Yara, Sigma, Suricata, SQL
+
+** Usage
+   :PROPERTIES:
+   :CUSTOM_ID: usage
+   :END:
+You can use most of these tools on major platforms. Most SIEM platforms use Detection Rules that incoporate Sigma, Suricata, and some sort of log search which involves a variation of SQL.
+
+** Authors
+[[https:eduardorobles.com][Eduardo Robles]] - Idea and Initial work
+
+** Acknowledgements and Inspiration
+- https://github.com/Bert-JanP/Hunting-Queries-Detection-Rules
+- https://github.com/tsale/Sigma_rules
+- https://github.com/teoseller/osquery-attck
+- https://github.com/SecurityAura/DE-TH-Aura
+
+** Contributions
+
+**** You can Buy Me A Coffee
+[[https://www.buymeacoffee.com/eduardorobles][https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png]]
+
+**** Tip with some Sats
+[[https://getalby.com/p/tacosandlinux][Tip Some Sats ⚡]]
